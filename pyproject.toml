@@ -1,0 +1,22 @@
+[project]
+name = "yads-mcp"
+version = "0.1.0"
+description = "MCP server wrapping YADS's API-key-authenticated /api/v1 surface for LLM agents"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=2.0.0,<3.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0.0"]
+
+[project.scripts]
+yads-mcp = "yads_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["yads_mcp*"]
