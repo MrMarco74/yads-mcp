@@ -21,8 +21,8 @@ def test_queue_pause_and_resume_tools():
 
 def test_queue_cancel_task_tool_not_found():
     from yads_mcp.server import queue_cancel_task
-    import httpx
-    with __import__("pytest").raises(httpx.HTTPStatusError):
+    import pytest
+    with pytest.raises(RuntimeError, match="404"):
         queue_cancel_task(task_id="nonexistent-task-id")
 
 
@@ -32,10 +32,17 @@ def test_queue_purge_requires_confirm():
     assert "purged_count" in result
 
 
+def test_queue_purge_rejects_confirm_false():
+    from yads_mcp.server import queue_purge
+    import pytest
+    with pytest.raises(RuntimeError, match="400"):
+        queue_purge(confirm=False)
+
+
 def test_queue_undo_purge_not_found():
     from yads_mcp.server import queue_undo_purge
-    import httpx
-    with __import__("pytest").raises(httpx.HTTPStatusError):
+    import pytest
+    with pytest.raises(RuntimeError, match="404"):
         queue_undo_purge(undo_batch="nonexistent-batch-id")
 
 

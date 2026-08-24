@@ -6,11 +6,25 @@ Run with: YADS_URL=https://yads.example.com YADS_API_KEY=<token> \
     python -m yads_mcp.server
 """
 
+import httpx
+
 from mcp.server.mcpserver import MCPServer
 
 from yads_mcp.client import client
 
 mcp = MCPServer("yads")
+
+
+def _ok(resp: httpx.Response):
+    """Raise with the server's actual error detail instead of a bare status
+    code. `resp.raise_for_status()` alone discards the response body, so an
+    LLM agent calling e.g. queue_purge(confirm=False) would only ever see
+    "400 Bad Request" and never the "Set confirm=true..." detail it needs
+    to self-correct. The body contains no credentials -- it's the target's
+    own JSON error response -- so it's safe to surface in full."""
+    if resp.is_error:
+        raise RuntimeError(f"YADS API {resp.status_code}: {resp.text[:500]}")
+    return resp.json()
 
 
 # --- Queue & Scan Control ---
@@ -22,23 +36,21 @@ def queue_status() -> dict:
     active (paused/resumed), queued/running target counts, and the tenant's
     active/reserved Celery tasks."""
     with client() as c:
-        resp = c.get("/api/v1/queue/status")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.get("/api/v1/queue/status"))
 
 
 @mcp.tool()
 def queue_list_rate_limited_modules() -> dict:
-    """Which scanner modules are currently being rate-limited by an
+    """How many scanner modules are currently being rate-limited by an
     external target's API (circuit-breaker tripped), if any -- surfaced as
     part of the same queue-status data queue_status() returns, exposed here
     as its own discoverable tool for the common "is anything rate-limited
-    right now" question."""
+    right now" question. Only a count is available via the API, not the
+    specific module names."""
+    data = None
     with client() as c:
-        resp = c.get("/api/v1/queue/status")
-        resp.raise_for_status()
-        data = resp.json()
-        return {"rate_limited_module_count": data.get("rate_limited_module_count", 0)}
+        data = _ok(c.get("/api/v1/queue/status"))
+    return {"rate_limited_module_count": data.get("rate_limited_module_count", 0)}
 
 
 @mcp.tool()
@@ -47,18 +59,15 @@ def queue_pause() -> dict:
     NOTE: this is fleet-wide, not scoped to this key's tenant (matches
     YADS's existing dashboard pause behavior)."""
     with client() as c:
-        resp = c.post("/api/v1/queue/control", json={"action": "pause"})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/queue/control", json={"action": "pause"}))
 
 
 @mcp.tool()
 def queue_resume() -> dict:
-    """Resume the scan queue after a pause."""
+    """Resume the scan queue after a pause. NOTE: like queue_pause, this is
+    fleet-wide, not scoped to this key's tenant."""
     with client() as c:
-        resp = c.post("/api/v1/queue/control", json={"action": "resume"})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/queue/control", json={"action": "resume"}))
 
 
 @mcp.tool()
@@ -67,9 +76,7 @@ def queue_cancel_task(task_id: str) -> dict:
     id (see queue_status's active_tasks/reserved_tasks for ids). Only
     cancels tasks belonging to this key's tenant."""
     with client() as c:
-        resp = c.post(f"/api/v1/queue/tasks/{task_id}/cancel")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post(f"/api/v1/queue/tasks/{task_id}/cancel"))
 
 
 @mcp.tool()
@@ -79,9 +86,7 @@ def queue_purge(confirm: bool) -> dict:
     'destructive' scope on this API key. Set confirm=True to actually
     perform this."""
     with client() as c:
-        resp = c.post("/api/v1/queue/purge", json={"confirm": confirm})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/queue/purge", json={"confirm": confirm}))
 
 
 @mcp.tool()
@@ -90,9 +95,7 @@ def queue_undo_purge(undo_batch: str) -> dict:
     undo_batch id from that call's response. Only works within 60 seconds
     of the purge, and only for tasks that hadn't started running yet."""
     with client() as c:
-        resp = c.post("/api/v1/queue/undo-purge", json={"undo_batch": undo_batch})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/queue/undo-purge", json={"undo_batch": undo_batch}))
 
 
 # --- Tagging & Organization ---
@@ -102,9 +105,7 @@ def queue_undo_purge(undo_batch: str) -> dict:
 def tags_list() -> list[str]:
     """All unique tags currently in use across this key's tenant's targets."""
     with client() as c:
-        resp = c.get("/api/v1/tags")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.get("/api/v1/tags"))
 
 
 @mcp.tool()
@@ -112,9 +113,7 @@ def tags_add_to_target(target_id: int, tag: str) -> list[str]:
     """Add a tag to one target. Returns the target's full tag list after
     the change."""
     with client() as c:
-        resp = c.post(f"/api/v1/targets/{target_id}/tags", json={"tag": tag})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post(f"/api/v1/targets/{target_id}/tags", json={"tag": tag}))
 
 
 @mcp.tool()
@@ -122,9 +121,7 @@ def tags_remove_from_target(target_id: int, tag: str) -> list[str]:
     """Remove a tag from one target. Returns the target's full tag list
     after the change."""
     with client() as c:
-        resp = c.delete(f"/api/v1/targets/{target_id}/tags/{tag}")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.delete(f"/api/v1/targets/{target_id}/tags/{tag}"))
 
 
 @mcp.tool()
@@ -133,9 +130,7 @@ def tags_bulk_assign(target_ids: list[int], tags: list[str], action: str = "add"
     "add" (default), "remove", or "replace" (replaces each target's entire
     tag list with `tags`)."""
     with client() as c:
-        resp = c.post("/api/v1/tags/bulk-assign", json={"target_ids": target_ids, "tags": tags, "action": action})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/tags/bulk-assign", json={"target_ids": target_ids, "tags": tags, "action": action}))
 
 
 @mcp.tool()
@@ -143,19 +138,16 @@ def tags_bulk_add_by_ids(target_ids: list[int], tag: str) -> dict:
     """Add a single tag to multiple targets by id (simpler variant of
     tags_bulk_assign for the common "add one tag to many targets" case)."""
     with client() as c:
-        resp = c.post("/api/v1/targets/bulk/tag", json={"target_ids": target_ids, "tag": tag})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/targets/bulk/tag", json={"target_ids": target_ids, "tag": tag}))
 
 
 @mcp.tool()
-def tags_delete_globally(tag_name: str) -> dict:
+def tags_delete_globally(tag_name: str, confirm: bool) -> dict:
     """Remove a tag from every target in this key's tenant that has it --
-    irreversible. Requires the 'destructive' scope on this API key."""
+    irreversible, no undo. Requires the 'destructive' scope on this API
+    key. Set confirm=True to actually perform this."""
     with client() as c:
-        resp = c.delete(f"/api/v1/tags/{tag_name}")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.delete(f"/api/v1/tags/{tag_name}", params={"confirm": confirm}))
 
 
 # --- Scanning Execution ---
@@ -165,12 +157,12 @@ def tags_delete_globally(tag_name: str) -> dict:
 def scan_trigger(target_url: str, profile: str = "standard") -> dict:
     """Trigger a scan for a URL, finding-or-creating the Target by domain.
     profile: "quick" (web_analyzer only), "standard" (dns_scanner,
-    web_analyzer, ssl_scanner -- default), or "full" (every module except
-    dns_cleanup)."""
+    web_analyzer, ssl_scanner -- default), or "full" (all 7 modules:
+    dns_cleanup, subdomain_scanner, dns_scanner, web_analyzer, ssl_scanner,
+    crawler, cve_scanner -- note this DOES include dns_cleanup, unlike
+    scan_trigger_by_target_id's "full_scan" scan_type)."""
     with client() as c:
-        resp = c.post("/api/v1/dast/scan", json={"target_url": target_url, "profile": profile})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/dast/scan", json={"target_url": target_url, "profile": profile}))
 
 
 @mcp.tool()
@@ -184,9 +176,7 @@ def scan_trigger_by_target_id(target_id: int, scan_types: list[str], scan_priori
     if scan_priority is not None:
         body["scan_priority"] = scan_priority
     with client() as c:
-        resp = c.post(f"/api/v1/targets/{target_id}/scan", json=body)
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post(f"/api/v1/targets/{target_id}/scan", json=body))
 
 
 @mcp.tool()
@@ -199,9 +189,7 @@ def scan_bulk_preview_count(only_roots: bool = False, online_only: bool = False,
     if scanned_before:
         params["scanned_before"] = scanned_before
     with client() as c:
-        resp = c.get("/api/v1/targets/bulk-scan/preview-count", params=params)
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.get("/api/v1/targets/bulk-scan/preview-count", params=params))
 
 
 @mcp.tool()
@@ -219,27 +207,21 @@ def scan_bulk_by_criteria(
     if scanned_before:
         body["scanned_before"] = scanned_before
     with client() as c:
-        resp = c.post("/api/v1/targets/bulk-scan", json=body)
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/targets/bulk-scan", json=body))
 
 
 @mcp.tool()
 def scan_bulk_selected(target_ids: list[int], scan_types: list[str]) -> dict:
     """Queue a scan for an explicit list of target ids."""
     with client() as c:
-        resp = c.post("/api/v1/targets/bulk/scan", json={"target_ids": target_ids, "scan_types": scan_types})
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.post("/api/v1/targets/bulk/scan", json={"target_ids": target_ids, "scan_types": scan_types}))
 
 
 @mcp.tool()
 def scan_get_findings() -> list[dict]:
     """All scan findings for this key's tenant, newest first."""
     with client() as c:
-        resp = c.get("/api/v1/findings")
-        resp.raise_for_status()
-        return resp.json()
+        return _ok(c.get("/api/v1/findings"))
 
 
 def main() -> None:

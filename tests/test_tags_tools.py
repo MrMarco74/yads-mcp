@@ -60,5 +60,11 @@ def test_tags_bulk_add_by_ids_tool(owned_target_id):
 def test_tags_delete_globally_tool(owned_target_id):
     from yads_mcp.server import tags_add_to_target, tags_delete_globally
     tags_add_to_target(target_id=owned_target_id, tag="delete-me-via-mcp")
-    result = tags_delete_globally(tag_name="delete-me-via-mcp")
+    result = tags_delete_globally(tag_name="delete-me-via-mcp", confirm=True)
     assert result["removed_from"] >= 1
+
+
+def test_tags_delete_globally_rejects_confirm_false():
+    from yads_mcp.server import tags_delete_globally
+    with pytest.raises(RuntimeError, match="400"):
+        tags_delete_globally(tag_name="irrelevant-tag", confirm=False)

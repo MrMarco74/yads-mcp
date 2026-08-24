@@ -94,7 +94,7 @@ or add to `.mcp.json`:
 - `tags_add_to_target(target_id, tag)` / `tags_remove_from_target(target_id, tag)`
 - `tags_bulk_assign(target_ids, tags, action="add"|"remove"|"replace")`
 - `tags_bulk_add_by_ids(target_ids, tag)`
-- `tags_delete_globally(tag_name)` — destructive
+- `tags_delete_globally(tag_name, confirm)` — destructive, no undo
 
 **Scanning Execution**
 - `scan_trigger(target_url, profile="standard")`
