@@ -1,11 +1,11 @@
 # yads-mcp
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-1%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-2%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
 
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
-control, tagging, and scan execution through YADS's own `/api/v1` API,
-without a human at the dashboard.
+control, tagging, scan execution, and target/asset management through
+YADS's own `/api/v1` API, without a human at the dashboard.
 
 It's a thin stdio wrapper around YADS's existing HTTP API
 (`/api/v1/queue/*`, `/api/v1/tags*`, `/api/v1/targets/*`) — no separate
