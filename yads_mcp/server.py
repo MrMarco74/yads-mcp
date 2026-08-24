@@ -81,6 +81,69 @@ def queue_undo_purge(undo_batch: str) -> dict:
         return resp.json()
 
 
+# --- Tagging & Organization ---
+
+
+@mcp.tool()
+def tags_list() -> list[str]:
+    """All unique tags currently in use across this key's tenant's targets."""
+    with client() as c:
+        resp = c.get("/api/v1/tags")
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def tags_add_to_target(target_id: int, tag: str) -> list[str]:
+    """Add a tag to one target. Returns the target's full tag list after
+    the change."""
+    with client() as c:
+        resp = c.post(f"/api/v1/targets/{target_id}/tags", json={"tag": tag})
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def tags_remove_from_target(target_id: int, tag: str) -> list[str]:
+    """Remove a tag from one target. Returns the target's full tag list
+    after the change."""
+    with client() as c:
+        resp = c.delete(f"/api/v1/targets/{target_id}/tags/{tag}")
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def tags_bulk_assign(target_ids: list[int], tags: list[str], action: str = "add") -> dict:
+    """Add, remove, or replace tags on multiple targets at once. action:
+    "add" (default), "remove", or "replace" (replaces each target's entire
+    tag list with `tags`)."""
+    with client() as c:
+        resp = c.post("/api/v1/tags/bulk-assign", json={"target_ids": target_ids, "tags": tags, "action": action})
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def tags_bulk_add_by_ids(target_ids: list[int], tag: str) -> dict:
+    """Add a single tag to multiple targets by id (simpler variant of
+    tags_bulk_assign for the common "add one tag to many targets" case)."""
+    with client() as c:
+        resp = c.post("/api/v1/targets/bulk/tag", json={"target_ids": target_ids, "tag": tag})
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def tags_delete_globally(tag_name: str) -> dict:
+    """Remove a tag from every target in this key's tenant that has it --
+    irreversible. Requires the 'destructive' scope on this API key."""
+    with client() as c:
+        resp = c.delete(f"/api/v1/tags/{tag_name}")
+        resp.raise_for_status()
+        return resp.json()
+
+
 def main() -> None:
     mcp.run()
 
