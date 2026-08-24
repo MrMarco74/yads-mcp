@@ -1,6 +1,6 @@
 """MCP server exposing YADS's API-key-authenticated /api/v1 surface as
-tools, so any MCP-capable LLM agent can drive queue control, tagging, and
-scanning operations without a human at the dashboard.
+tools, so any MCP-capable LLM agent can drive queue control, tagging,
+scanning, and target/asset management without a human at the dashboard.
 
 Run with: YADS_URL=https://yads.example.com YADS_API_KEY=<token> \
     python -m yads_mcp.server
@@ -260,9 +260,11 @@ def list_targets(
 def get_target(target_id: int) -> dict:
     """Lean summary of one target: domain, scan status/progress, tags,
     archive state, when it was created, when it was last scanned, and how
-    many distinct scanner modules have results for it. For the full
-    per-module scan data, use scan_get_findings() (Wave 1) or
-    get_target_changes() for its recent change history."""
+    many distinct scanner modules have results for it. For per-module scan
+    data, use scan_get_findings() (Wave 1) -- note it returns every finding
+    for the whole tenant, not just this target, so filter its result by
+    target_id client-side. For this target's recent change history, use
+    get_target_changes() instead."""
     with client() as c:
         return _ok(c.get(f"/api/v1/targets/{target_id}"))
 
@@ -282,7 +284,8 @@ def bulk_delete_targets(target_ids: list[int], confirm: bool) -> dict:
     """Permanently delete targets and all their scan history/findings --
     irreversible beyond a 60-second undo window (see
     undo_bulk_delete_targets; the domain/tags are restorable, scan history
-    is not). Requires the 'destructive' scope on this API key."""
+    is not). Requires the 'destructive' scope on this API key. Set
+    confirm=True to actually perform this."""
     with client() as c:
         return _ok(c.post("/api/v1/targets/bulk-delete", json={"target_ids": target_ids, "confirm": confirm}))
 
@@ -329,7 +332,8 @@ def bulk_blocklist_targets(target_ids: list[int], confirm: bool) -> dict:
     target. Requires the 'destructive' scope: unlike plain archiving,
     reversing this needs both restore_target() and manually removing the
     blocklist entry (no blocklist-management tool exists yet), so there's
-    no clean single-action undo."""
+    no clean single-action undo. Set confirm=True to actually perform
+    this."""
     with client() as c:
         return _ok(c.post("/api/v1/targets/bulk-blocklist", json={"target_ids": target_ids, "confirm": confirm}))
 

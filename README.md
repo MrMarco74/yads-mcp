@@ -20,11 +20,15 @@ From a machine already logged into YADS (session cookie), via
 `/developer` or the `/api-keys/` endpoint, create a key with the scopes
 this agent needs:
 
-- `read` — status/list operations (queue_status, tags_list, scan_get_findings, ...)
-- `write` — tag mutations
+- `read` — status/list operations (queue_status, tags_list, scan_get_findings,
+  list_targets, get_target, get_target_changes, get_scan_status,
+  get_network_context, ...)
+- `write` — tag mutations, and target mutations (add_target,
+  undo_bulk_delete_targets, bulk_archive_targets, archive_dead_targets,
+  restore_target)
 - `scan_execute` — triggering scans (single or bulk)
-- `destructive` — queue_purge, tags_delete_globally (also requires
-  `confirm=True` on the call itself)
+- `destructive` — queue_purge, tags_delete_globally, bulk_delete_targets,
+  bulk_blocklist_targets (also requires `confirm=True` on the call itself)
 
 Copy the returned token now — it is never shown again.
 

@@ -5,6 +5,35 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added — Wave 2: Target & Asset Management
+
+12 tools wrapping a new `/api/v1/targets*` surface in YADS, following the
+same `_ok()`/`with client()` and `destructive`+`confirm` conventions
+established in Wave 1.
+
+**Target & Asset Management** (12 tools)
+- `list_targets(tag, online, scan_status, domain_search, archived, last_scanned_before, page, limit)`
+- `get_target(target_id)`
+- `add_target(domain)`
+- `bulk_delete_targets(target_ids, confirm)` — destructive, 60s undo window
+- `undo_bulk_delete_targets(undo_batch)`
+- `bulk_archive_targets(target_ids)` / `archive_dead_targets()` / `restore_target(target_id)`
+- `bulk_blocklist_targets(target_ids, confirm)` — destructive, no undo
+- `get_target_changes(target_id, limit)`
+- `get_scan_status(target_id)` — also closes a pre-existing gap in YADS's
+  underlying (non-`/api/v1`) scan-status route, which had no auth
+  dependency or tenant check at all
+- `get_network_context(target_id)`
+
+### Known limitations (Wave 2)
+
+- `add_target` returns `409` (not a silent 500) when the domain is already
+  registered under a different tenant, but there's no cross-tenant
+  "who owns this" lookup tool — the caller only learns it's taken.
+- `bulk_blocklist_targets` has no companion blocklist-management tool yet;
+  reversing it requires both `restore_target()` and manually removing the
+  blocklist row via the dashboard.
+
 ### Added — Wave 1: Queue & Scan Control, Tagging & Organization, Scanning Execution
 
 Initial release. `yads-mcp` is a thin MCP server wrapping YADS's
@@ -59,6 +88,6 @@ built to mirror the `labcontrol_mcp` package's shape and conventions.
   YADS's audit log (tenant-scoped correctly, just not individually
   attributed) — a follow-up for a later wave.
 
-Waves 2–10 (Target/Asset Management, Reports & Export, Findings &
-Compliance, OSINT/Discovery, Tenant/User Admin, Integrations, System/Infra
-Admin) are tracked separately, each its own design spec and release.
+Waves 3–10 (Reports & Export, Findings & Compliance, OSINT/Discovery/
+Intelligence, Integrations/Webhooks/Notifications) are tracked separately,
+each its own design spec and release.

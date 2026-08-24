@@ -66,9 +66,11 @@ def test_archive_dead_targets_tool():
 
 
 def test_bulk_blocklist_tool():
+    import uuid
     from yads_mcp.server import add_target, bulk_blocklist_targets
 
-    added = add_target(domain="yads-mcp-wave2-blocklist-fixture.example.com")
+    domain = f"yads-mcp-wave2-blocklist-{uuid.uuid4().hex[:8]}.example.com"
+    added = add_target(domain=domain)
     result = bulk_blocklist_targets(target_ids=[added["id"]], confirm=True)
     assert result["blocklisted_count"] == 1
     assert result["archived_count"] == 1
