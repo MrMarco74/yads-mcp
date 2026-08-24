@@ -277,6 +277,63 @@ def add_target(domain: str) -> dict:
         return _ok(c.post("/api/v1/targets", json={"domain": domain}))
 
 
+@mcp.tool()
+def bulk_delete_targets(target_ids: list[int], confirm: bool) -> dict:
+    """Permanently delete targets and all their scan history/findings --
+    irreversible beyond a 60-second undo window (see
+    undo_bulk_delete_targets; the domain/tags are restorable, scan history
+    is not). Requires the 'destructive' scope on this API key."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets/bulk-delete", json={"target_ids": target_ids, "confirm": confirm}))
+
+
+@mcp.tool()
+def undo_bulk_delete_targets(undo_batch: str) -> dict:
+    """Re-create targets deleted by a prior bulk_delete_targets call, using
+    the undo_batch id from that call's response. Only works within 60
+    seconds of the delete -- restores domain/tags only, not scan history."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets/bulk-delete/undo", json={"undo_batch": undo_batch}))
+
+
+@mcp.tool()
+def bulk_archive_targets(target_ids: list[int]) -> dict:
+    """Archive targets -- stops them from being scanned, but fully
+    reversible via restore_target(). Not destructive."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets/bulk-archive", json={"target_ids": target_ids}))
+
+
+@mcp.tool()
+def archive_dead_targets() -> dict:
+    """Archive every target in this key's tenant whose most recent DNS
+    scan returned empty records (i.e. the domain no longer resolves).
+    Tenant-wide sweep, no target_ids needed. Reversible via
+    restore_target()."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets/archive-dead"))
+
+
+@mcp.tool()
+def restore_target(target_id: int) -> dict:
+    """Un-archive a target, clearing its archived state so it's scanned
+    again."""
+    with client() as c:
+        return _ok(c.post(f"/api/v1/targets/{target_id}/restore"))
+
+
+@mcp.tool()
+def bulk_blocklist_targets(target_ids: list[int], confirm: bool) -> dict:
+    """Add each target's domain to this tenant's Discovery blocklist
+    (exact match -- future Discovery runs won't re-add it) AND archive the
+    target. Requires the 'destructive' scope: unlike plain archiving,
+    reversing this needs both restore_target() and manually removing the
+    blocklist entry (no blocklist-management tool exists yet), so there's
+    no clean single-action undo."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets/bulk-blocklist", json={"target_ids": target_ids, "confirm": confirm}))
+
+
 def main() -> None:
     mcp.run()
 
