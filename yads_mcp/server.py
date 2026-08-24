@@ -159,8 +159,7 @@ def scan_trigger(target_url: str, profile: str = "standard") -> dict:
     profile: "quick" (web_analyzer only), "standard" (dns_scanner,
     web_analyzer, ssl_scanner -- default), or "full" (all 7 modules:
     dns_cleanup, subdomain_scanner, dns_scanner, web_analyzer, ssl_scanner,
-    crawler, cve_scanner -- note this DOES include dns_cleanup, unlike
-    scan_trigger_by_target_id's "full_scan" scan_type)."""
+    crawler, cve_scanner)."""
     with client() as c:
         return _ok(c.post("/api/v1/dast/scan", json={"target_url": target_url, "profile": profile}))
 
