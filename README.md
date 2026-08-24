@@ -1,5 +1,7 @@
 # yads-mcp
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-1%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
 control, tagging, and scan execution through YADS's own `/api/v1` API,
@@ -107,3 +109,11 @@ or add to `.mcp.json`:
 Waves 2–10 (Target/Asset Management, Reports & Export, Findings &
 Compliance, OSINT/Discovery, Tenant/User Admin, Integrations, System/Infra
 Admin) are tracked separately, each with its own design spec.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
