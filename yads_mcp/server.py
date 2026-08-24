@@ -144,6 +144,90 @@ def tags_delete_globally(tag_name: str) -> dict:
         return resp.json()
 
 
+# --- Scanning Execution ---
+
+
+@mcp.tool()
+def scan_trigger(target_url: str, profile: str = "standard") -> dict:
+    """Trigger a scan for a URL, finding-or-creating the Target by domain.
+    profile: "quick" (web_analyzer only), "standard" (dns_scanner,
+    web_analyzer, ssl_scanner -- default), or "full" (every module except
+    dns_cleanup)."""
+    with client() as c:
+        resp = c.post("/api/v1/dast/scan", json={"target_url": target_url, "profile": profile})
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def scan_trigger_by_target_id(target_id: int, scan_types: list[str], scan_priority: int | None = None) -> dict:
+    """Trigger a scan for an already-known target by its numeric id, with
+    an explicit module list (e.g. ["catchall_detector"] for a
+    parked-domain-only check). scan_types accepts module names from the
+    scanner registry, plus "full_scan" (expands to every module except
+    subdomain_scanner and catchall_detector) and "dns_cleanup"."""
+    body: dict = {"scan_types": scan_types}
+    if scan_priority is not None:
+        body["scan_priority"] = scan_priority
+    with client() as c:
+        resp = c.post(f"/api/v1/targets/{target_id}/scan", json=body)
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def scan_bulk_preview_count(only_roots: bool = False, online_only: bool = False, scanned_before: str | None = None) -> dict:
+    """Count how many targets match a set of bulk-scan criteria, without
+    queuing anything -- use before scan_bulk_by_criteria to see the blast
+    radius first. scanned_before is an ISO date string ("2026-08-01");
+    matches targets last scanned before that date OR never scanned."""
+    params: dict = {"only_roots": only_roots, "online_only": online_only}
+    if scanned_before:
+        params["scanned_before"] = scanned_before
+    with client() as c:
+        resp = c.get("/api/v1/targets/bulk-scan/preview-count", params=params)
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def scan_bulk_by_criteria(
+    scan_types: list[str],
+    only_roots: bool = False,
+    online_only: bool = False,
+    scanned_before: str | None = None,
+) -> dict:
+    """Queue a scan for every target matching the given criteria (combined
+    with AND). No target-tag filter exists yet -- to scan only targets
+    without a given tag, list tags_list, resolve target ids yourself, and
+    use scan_bulk_selected instead."""
+    body: dict = {"scan_types": scan_types, "only_roots": only_roots, "online_only": online_only}
+    if scanned_before:
+        body["scanned_before"] = scanned_before
+    with client() as c:
+        resp = c.post("/api/v1/targets/bulk-scan", json=body)
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def scan_bulk_selected(target_ids: list[int], scan_types: list[str]) -> dict:
+    """Queue a scan for an explicit list of target ids."""
+    with client() as c:
+        resp = c.post("/api/v1/targets/bulk/scan", json={"target_ids": target_ids, "scan_types": scan_types})
+        resp.raise_for_status()
+        return resp.json()
+
+
+@mcp.tool()
+def scan_get_findings() -> list[dict]:
+    """All scan findings for this key's tenant, newest first."""
+    with client() as c:
+        resp = c.get("/api/v1/findings")
+        resp.raise_for_status()
+        return resp.json()
+
+
 def main() -> None:
     mcp.run()
 
