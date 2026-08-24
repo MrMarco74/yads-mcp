@@ -223,6 +223,60 @@ def scan_get_findings() -> list[dict]:
         return _ok(c.get("/api/v1/findings"))
 
 
+# --- Target & Asset Management ---
+
+
+@mcp.tool()
+def list_targets(
+    tag: str | None = None,
+    online: bool | None = None,
+    scan_status: str | None = None,
+    domain_search: str | None = None,
+    archived: bool = False,
+    last_scanned_before: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """List targets for this key's tenant, with optional filters (combined
+    with AND). limit is capped at 100 server-side. scan_status accepts
+    "idle"/"queued"/"running"/"failed". last_scanned_before is an ISO date
+    string; matches targets scanned before that date OR never scanned."""
+    params: dict = {"archived": archived, "page": page, "limit": limit}
+    if tag:
+        params["tag"] = tag
+    if online is not None:
+        params["online"] = online
+    if scan_status:
+        params["scan_status"] = scan_status
+    if domain_search:
+        params["domain_search"] = domain_search
+    if last_scanned_before:
+        params["last_scanned_before"] = last_scanned_before
+    with client() as c:
+        return _ok(c.get("/api/v1/targets", params=params))
+
+
+@mcp.tool()
+def get_target(target_id: int) -> dict:
+    """Lean summary of one target: domain, scan status/progress, tags,
+    archive state, when it was created, when it was last scanned, and how
+    many distinct scanner modules have results for it. For the full
+    per-module scan data, use scan_get_findings() (Wave 1) or
+    get_target_changes() for its recent change history."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/targets/{target_id}"))
+
+
+@mcp.tool()
+def add_target(domain: str) -> dict:
+    """Add a target by domain, or return the existing one if it's already
+    present (find-or-create). Blocked for internal/private-network domains
+    by SSRF protection. Does not trigger a scan -- follow up with
+    scan_trigger_by_target_id() if you want one."""
+    with client() as c:
+        return _ok(c.post("/api/v1/targets", json={"domain": domain}))
+
+
 def main() -> None:
     mcp.run()
 
