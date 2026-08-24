@@ -81,7 +81,7 @@ or add to `.mcp.json`:
 }
 ```
 
-## Tools (Wave 1)
+## Tools
 
 **Queue & Scan Control**
 - `queue_status()`
@@ -106,9 +106,20 @@ or add to `.mcp.json`:
 - `scan_bulk_selected(target_ids, scan_types)`
 - `scan_get_findings()`
 
-Waves 2–10 (Target/Asset Management, Reports & Export, Findings &
-Compliance, OSINT/Discovery, Tenant/User Admin, Integrations, System/Infra
-Admin) are tracked separately, each with its own design spec.
+**Target & Asset Management** (Wave 2)
+- `list_targets(tag=None, online=None, scan_status=None, domain_search=None, archived=False, last_scanned_before=None, page=1, limit=20)`
+- `get_target(target_id)`
+- `add_target(domain)`
+- `bulk_delete_targets(target_ids, confirm)` — destructive, 60s undo window
+- `undo_bulk_delete_targets(undo_batch)`
+- `bulk_archive_targets(target_ids)` / `archive_dead_targets()` / `restore_target(target_id)`
+- `bulk_blocklist_targets(target_ids, confirm)` — destructive, no undo
+- `get_target_changes(target_id, limit=30)`
+- `get_scan_status(target_id)`
+- `get_network_context(target_id)`
+
+Waves 3–10 (Reports & Export, Findings & Compliance, OSINT/Discovery/Intelligence,
+Integrations/Webhooks/Notifications) are tracked separately, each with its own design spec.
 
 ## Changelog
 

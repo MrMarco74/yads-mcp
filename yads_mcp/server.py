@@ -334,6 +334,30 @@ def bulk_blocklist_targets(target_ids: list[int], confirm: bool) -> dict:
         return _ok(c.post("/api/v1/targets/bulk-blocklist", json={"target_ids": target_ids, "confirm": confirm}))
 
 
+@mcp.tool()
+def get_target_changes(target_id: int, limit: int = 30) -> list[dict]:
+    """Recent detected changes for a target (new/changed/removed findings
+    across scans), newest first. limit capped at 100 server-side."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/targets/{target_id}/changes", params={"limit": limit}))
+
+
+@mcp.tool()
+def get_scan_status(target_id: int) -> dict:
+    """Current scan status/progress message for a target -- live if a scan
+    is running, otherwise the last known state ("idle", "queued", etc.)."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/targets/{target_id}/scan-status"))
+
+
+@mcp.tool()
+def get_network_context(target_id: int) -> dict:
+    """Network context captured during a target's scans -- the external IP
+    YADS scanned from and the IPs the target resolved to at scan time."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/targets/{target_id}/network-context"))
+
+
 def main() -> None:
     mcp.run()
 

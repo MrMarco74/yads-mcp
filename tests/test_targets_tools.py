@@ -72,3 +72,28 @@ def test_bulk_blocklist_tool():
     result = bulk_blocklist_targets(target_ids=[added["id"]], confirm=True)
     assert result["blocklisted_count"] == 1
     assert result["archived_count"] == 1
+
+
+def test_get_target_changes_tool():
+    from yads_mcp.server import add_target, get_target_changes
+
+    added = add_target(domain="yads-mcp-wave2-changes-fixture.example.com")
+    result = get_target_changes(target_id=added["id"])
+    assert isinstance(result, list)
+
+
+def test_get_scan_status_tool():
+    from yads_mcp.server import add_target, get_scan_status
+
+    added = add_target(domain="yads-mcp-wave2-status-fixture.example.com")
+    result = get_scan_status(target_id=added["id"])
+    assert "status" in result
+
+
+def test_get_network_context_tool():
+    from yads_mcp.server import add_target, get_network_context
+
+    added = add_target(domain="yads-mcp-wave2-netctx-fixture.example.com")
+    result = get_network_context(target_id=added["id"])
+    assert "network_context" in result
+    assert result["target_domain"] == "yads-mcp-wave2-netctx-fixture.example.com"
