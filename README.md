@@ -83,6 +83,7 @@ or add to `.mcp.json`:
 
 **Queue & Scan Control**
 - `queue_status()`
+- `queue_list_rate_limited_modules()`
 - `queue_pause()` / `queue_resume()` — fleet-wide, not tenant-scoped
 - `queue_cancel_task(task_id)`
 - `queue_purge(confirm)` — destructive, tenant-scoped, 60s undo window

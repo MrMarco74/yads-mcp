@@ -28,6 +28,20 @@ def queue_status() -> dict:
 
 
 @mcp.tool()
+def queue_list_rate_limited_modules() -> dict:
+    """Which scanner modules are currently being rate-limited by an
+    external target's API (circuit-breaker tripped), if any -- surfaced as
+    part of the same queue-status data queue_status() returns, exposed here
+    as its own discoverable tool for the common "is anything rate-limited
+    right now" question."""
+    with client() as c:
+        resp = c.get("/api/v1/queue/status")
+        resp.raise_for_status()
+        data = resp.json()
+        return {"rate_limited_module_count": data.get("rate_limited_module_count", 0)}
+
+
+@mcp.tool()
 def queue_pause() -> dict:
     """Pause the scan queue -- stops workers from picking up new tasks.
     NOTE: this is fleet-wide, not scoped to this key's tenant (matches

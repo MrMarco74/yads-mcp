@@ -37,3 +37,10 @@ def test_queue_undo_purge_not_found():
     import httpx
     with __import__("pytest").raises(httpx.HTTPStatusError):
         queue_undo_purge(undo_batch="nonexistent-batch-id")
+
+
+def test_queue_list_rate_limited_modules_tool_returns_shape():
+    from yads_mcp.server import queue_list_rate_limited_modules
+    result = queue_list_rate_limited_modules()
+    assert "rate_limited_module_count" in result
+    assert isinstance(result["rate_limited_module_count"], int)
