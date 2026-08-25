@@ -148,6 +148,16 @@ or add to `.mcp.json`:
 
 All four planned domains (Findings & Compliance, Reports & Export, OSINT/Discovery/Intelligence, Integrations/Webhooks/Notifications) are now implemented. Administrative surfaces (tenant/user and system/infra admin) are permanently out of scope.
 
+## Troubleshooting
+
+**`YADS API 403: SSL/TLS Required for API Key authentication`** — YADS enforces
+HTTPS for API-key auth. When YADS runs behind a TLS-terminating reverse proxy
+(the normal prod setup), it must honor `X-Forwarded-Proto`, otherwise every key
+is rejected even though `YADS_URL` is `https://`. This requires the YADS-side
+fix in `yads/auth/deps.py` (commit `361020f5`, 2026-08-25); older YADS builds
+reject all API keys behind a proxy. Point `YADS_URL` at the HTTPS edge, not the
+plain-HTTP container port.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).

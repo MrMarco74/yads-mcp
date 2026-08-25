@@ -5,6 +5,18 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Notes
+
+- Verified working end-to-end against a live YADS deployment. This required a
+  YADS-side fix (`yads/auth/deps.py` `361020f5`, 2026-08-25): the API-key TLS
+  check now honors `X-Forwarded-Proto`, so keys are accepted behind a
+  TLS-terminating reverse proxy. Older YADS builds reject every API key behind
+  a proxy (see Troubleshooting in the README).
+- Known gap: `queue_status()`'s `queued_count` comes from YADS's
+  `/api/v1/queue/status`, which derives it from DB target status and can read 0
+  during a bulk sweep while the broker still holds thousands of messages. A
+  YADS-side change to report real broker depth is pending.
+
 ### Added — Wave 6: Integrations / Webhooks / Notifications
 
 3 read-only, secret-safe tools over a new tenant-scoped surface in YADS.
