@@ -441,6 +441,49 @@ def get_compliance_summary() -> dict:
         return _ok(c.get("/api/v1/compliance/summary"))
 
 
+# --- Reports & Export (Wave 4, read-only) ---
+
+
+@mcp.tool()
+def get_executive_summary() -> dict:
+    """Executive security-posture summary for this key's tenant: target counts,
+    severity breakdown, overall score/grade, top risky targets, top finding
+    types, risk trend and recommended actions. The dashboard's Executive
+    Report as structured JSON."""
+    with client() as c:
+        return _ok(c.get("/api/v1/reports/executive"))
+
+
+@mcp.tool()
+def get_security_trends(days: int = 30) -> dict:
+    """Historical security-score points for this tenant over the last `days`
+    (oldest first), for summarizing how the posture is trending. Returns
+    {days, points:[{score, grade, recorded_at}]}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/reports/trends", params={"days": days}))
+
+
+@mcp.tool()
+def export_targets(
+    tag: str | None = None,
+    online: bool | None = None,
+    archived: bool = False,
+    page: int = 1,
+    limit: int = 500,
+) -> dict:
+    """Flat, reporting-oriented export of this tenant's targets (domain, status,
+    tags, rating, created_at). Higher page size than list_targets for bulk
+    export (limit capped at 2000 server-side); still paginated. Returns
+    {items, total, page, limit}."""
+    params: dict = {"archived": archived, "page": page, "limit": limit}
+    if tag:
+        params["tag"] = tag
+    if online is not None:
+        params["online"] = online
+    with client() as c:
+        return _ok(c.get("/api/v1/reports/targets/export", params=params))
+
+
 def main() -> None:
     mcp.run()
 

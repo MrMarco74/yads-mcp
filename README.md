@@ -1,6 +1,6 @@
 # yads-mcp
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-3%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-4%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
 
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
@@ -129,7 +129,12 @@ or add to `.mcp.json`:
 - `list_compliance_status(framework=None, page=1, limit=50)` — per-target scores/grades, worst first
 - `get_compliance_summary()` — per-framework rollup (target count, avg score, grade distribution)
 
-Waves 4–10 (Reports & Export, OSINT/Discovery/Intelligence,
+**Reports & Export** (Wave 4, read-only)
+- `get_executive_summary()` — posture summary: counts, score/grade, top risks, recommended actions
+- `get_security_trends(days=30)` — historical security-score points
+- `export_targets(tag=None, online=None, archived=False, page=1, limit=500)` — flat targets export
+
+Waves 5–10 (OSINT/Discovery/Intelligence,
 Integrations/Webhooks/Notifications) are tracked separately, each with its own design spec.
 
 ## Changelog

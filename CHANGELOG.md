@@ -5,6 +5,18 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added — Wave 4: Reports & Export
+
+3 read-only tools over a new tenant-scoped `/api/v1/reports*` surface in YADS,
+exposing structured-JSON report views (the dashboard's own report downloads
+are binary PDF/Excel).
+
+**Reports & Export** (3 tools)
+- `get_executive_summary()` — posture summary (counts, score/grade, top risks, actions)
+- `get_security_trends(days=30)` — historical security-score points
+- `export_targets(tag, online, archived, page, limit)` — flat paginated targets export
+
+
 ### Added — Wave 3: Findings & Compliance
 
 5 read-only tools wrapping a new `/api/v1/findings*` and `/api/v1/compliance*`
