@@ -547,6 +547,36 @@ def list_shadow_domains(
         return _ok(c.get("/api/v1/shadow-domains", params=params))
 
 
+# --- Integrations / Webhooks / Notifications (Wave 6, read-only) ---
+
+
+@mcp.tool()
+def list_webhooks() -> dict:
+    """List outbound webhooks configured for this key's tenant. The URL is
+    masked (webhook URLs often carry a secret token in the path); event_types
+    and active state are shown in full. Returns {items, total}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/webhooks"))
+
+
+@mcp.tool()
+def list_report_subscriptions() -> dict:
+    """List recurring report-delivery subscriptions for this tenant (name,
+    report type, recipients, cadence, last-sent). Returns {items, total}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/report-subscriptions"))
+
+
+@mcp.tool()
+def list_integrations() -> dict:
+    """List external integrations configured for this tenant (Jira, GitHub,
+    SIEM, Slack, ...): integration_type, active state, and the names of the
+    configured settings. Secret values (tokens/credentials) are never returned.
+    Returns {items, total}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/integrations"))
+
+
 def main() -> None:
     mcp.run()
 

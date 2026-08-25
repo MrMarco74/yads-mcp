@@ -5,6 +5,17 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added — Wave 6: Integrations / Webhooks / Notifications
+
+3 read-only, secret-safe tools over a new tenant-scoped surface in YADS.
+Completes the four planned tool domains (admin surfaces remain out of scope).
+
+**Integrations / Webhooks / Notifications** (3 tools)
+- `list_webhooks()` — outbound webhooks (URL masked; tokens never returned)
+- `list_report_subscriptions()` — recurring report deliveries
+- `list_integrations()` — external integrations; type/active/config-key-names only, never secret values
+
+
 ### Added — Wave 5: OSINT / Discovery / Intelligence
 
 5 read-only tools over a new tenant-scoped `/api/v1/discovery*`,

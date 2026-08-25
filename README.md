@@ -1,6 +1,6 @@
 # yads-mcp
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-5%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-6%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
 
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
@@ -141,8 +141,12 @@ or add to `.mcp.json`:
 - `list_brand_watches()` — brand-keyword watches with shadow-candidate counts
 - `list_shadow_domains(status=None, brand_watch_id=None, page=1, limit=50)` — DORA brand-abuse hunt output
 
-Waves 6–10 (
-Integrations/Webhooks/Notifications) are tracked separately, each with its own design spec.
+**Integrations / Webhooks / Notifications** (Wave 6, read-only, secret-safe)
+- `list_webhooks()` — outbound webhooks (URL masked)
+- `list_report_subscriptions()` — recurring report deliveries
+- `list_integrations()` — external integrations; type/active/config-key-names only, never secret values
+
+All four planned domains (Findings & Compliance, Reports & Export, OSINT/Discovery/Intelligence, Integrations/Webhooks/Notifications) are now implemented. Administrative surfaces (tenant/user and system/infra admin) are permanently out of scope.
 
 ## Changelog
 
