@@ -5,6 +5,24 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added — Wave 3: Findings & Compliance
+
+5 read-only tools wrapping a new `/api/v1/findings*` and `/api/v1/compliance*`
+surface in YADS (tenant-scoped, API-key-authenticated), following the same
+`_ok()`/`with client()` conventions as Waves 1–2.
+
+**Findings & Compliance** (5 tools)
+- `list_findings(severity, status, module, domain_search, page, limit)`
+- `get_finding(yf_id)`
+- `get_findings_summary()` — counts by severity / status / module
+- `list_compliance_status(framework, page, limit)` — per-target scores/grades, worst first
+- `get_compliance_summary()` — per-framework rollup (target count, avg score, grade distribution)
+
+`scan_get_findings()` (Wave 1) now returns the first page of the new
+SecurityFinding-based surface and is superseded by `list_findings()`; the old
+raw-`ScanResult` dump endpoint it used was removed on the YADS side.
+
+
 ### Added — Wave 2: Target & Asset Management
 
 12 tools wrapping a new `/api/v1/targets*` surface in YADS, following the

@@ -218,9 +218,14 @@ def scan_bulk_selected(target_ids: list[int], scan_types: list[str]) -> dict:
 
 @mcp.tool()
 def scan_get_findings() -> list[dict]:
-    """All scan findings for this key's tenant, newest first."""
+    """Security findings for this key's tenant, newest first (first page).
+
+    Superseded by list_findings(), which adds severity/status/module/domain
+    filtering and pagination and returns the full {items,total,page,limit}
+    envelope. Kept as a simple list-returning convenience; for anything beyond
+    a quick first-page peek, use list_findings()."""
     with client() as c:
-        return _ok(c.get("/api/v1/findings"))
+        return _ok(c.get("/api/v1/findings")).get("items", [])
 
 
 # --- Target & Asset Management ---
@@ -360,6 +365,80 @@ def get_network_context(target_id: int) -> dict:
     YADS scanned from and the IPs the target resolved to at scan time."""
     with client() as c:
         return _ok(c.get(f"/api/v1/targets/{target_id}/network-context"))
+
+
+# --- Findings & Compliance (Wave 3, read-only) ---
+
+
+@mcp.tool()
+def list_findings(
+    severity: str | None = None,
+    status: str | None = None,
+    module: str | None = None,
+    domain_search: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """List security findings for this key's tenant, with optional filters
+    (combined with AND). severity is critical/high/medium/low/info; status is
+    open/acknowledged/false_positive/fixed; module is the scanner module name
+    (e.g. "ssl_scanner"); domain_search is a substring match on the domain.
+    Returns {items, total, page, limit}; limit is capped at 200 server-side."""
+    params: dict = {"page": page, "limit": limit}
+    if severity:
+        params["severity"] = severity
+    if status:
+        params["status"] = status
+    if module:
+        params["module"] = module
+    if domain_search:
+        params["domain_search"] = domain_search
+    with client() as c:
+        return _ok(c.get("/api/v1/findings", params=params))
+
+
+@mcp.tool()
+def get_finding(yf_id: str) -> dict:
+    """Full detail for one security finding by its YF id (e.g. "YF-000042"),
+    including triage status, assignee and ticket reference. 404 if the finding
+    doesn't exist or belongs to another tenant."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/findings/{yf_id}"))
+
+
+@mcp.tool()
+def get_findings_summary() -> dict:
+    """Aggregate counts of this tenant's security findings, grouped by
+    severity, status and module -- the quick "what's my finding posture"
+    overview. Returns {total, by_severity, by_status, by_module}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/findings/summary"))
+
+
+@mcp.tool()
+def list_compliance_status(
+    framework: str | None = None,
+    page: int = 1,
+    limit: int = 50,
+) -> dict:
+    """Per-target compliance status rows for this tenant (each with domain,
+    framework, score, grade, passing/failing control counts), ordered worst
+    score first. Optionally filter by framework (e.g. "bsi", "dora").
+    Returns {items, total, page, limit}; limit is capped at 500 server-side."""
+    params: dict = {"page": page, "limit": limit}
+    if framework:
+        params["framework"] = framework
+    with client() as c:
+        return _ok(c.get("/api/v1/compliance/status", params=params))
+
+
+@mcp.tool()
+def get_compliance_summary() -> dict:
+    """Per-framework compliance rollup for this tenant: assessed-target count,
+    average score, and grade distribution for each framework. Returns
+    {frameworks: {<framework>: {target_count, avg_score, grade_distribution}}}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/compliance/summary"))
 
 
 def main() -> None:

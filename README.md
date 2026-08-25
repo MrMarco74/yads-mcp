@@ -1,6 +1,6 @@
 # yads-mcp
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-2%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-3%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
 
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
@@ -122,7 +122,14 @@ or add to `.mcp.json`:
 - `get_scan_status(target_id)`
 - `get_network_context(target_id)`
 
-Waves 3–10 (Reports & Export, Findings & Compliance, OSINT/Discovery/Intelligence,
+**Findings & Compliance** (Wave 3, read-only)
+- `list_findings(severity=None, status=None, module=None, domain_search=None, page=1, limit=20)`
+- `get_finding(yf_id)`
+- `get_findings_summary()` — counts by severity / status / module
+- `list_compliance_status(framework=None, page=1, limit=50)` — per-target scores/grades, worst first
+- `get_compliance_summary()` — per-framework rollup (target count, avg score, grade distribution)
+
+Waves 4–10 (Reports & Export, OSINT/Discovery/Intelligence,
 Integrations/Webhooks/Notifications) are tracked separately, each with its own design spec.
 
 ## Changelog
