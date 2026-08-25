@@ -1,6 +1,6 @@
 # yads-mcp
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-4%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Language](https://img.shields.io/badge/language-Python-informational.svg) ![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg) ![Wave](https://img.shields.io/badge/wave-5%20of%2010-lightgrey.svg) ![AI generated](https://img.shields.io/badge/AI-generated-8A2BE2.svg)
 
 MCP server that lets any MCP-capable LLM agent (Claude Code, or another
 agent process reachable over the same network as YADS) drive queue
@@ -134,7 +134,14 @@ or add to `.mcp.json`:
 - `get_security_trends(days=30)` — historical security-score points
 - `export_targets(tag=None, online=None, archived=False, page=1, limit=500)` — flat targets export
 
-Waves 5–10 (OSINT/Discovery/Intelligence,
+**OSINT / Discovery / Intelligence** (Wave 5, read-only)
+- `list_discovery_sessions(status=None, page=1, limit=20)`
+- `get_discovery_session(session_id)`
+- `list_discovery_candidates(session_id, status=None, page=1, limit=50)`
+- `list_brand_watches()` — brand-keyword watches with shadow-candidate counts
+- `list_shadow_domains(status=None, brand_watch_id=None, page=1, limit=50)` — DORA brand-abuse hunt output
+
+Waves 6–10 (
 Integrations/Webhooks/Notifications) are tracked separately, each with its own design spec.
 
 ## Changelog

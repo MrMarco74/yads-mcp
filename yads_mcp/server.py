@@ -484,6 +484,69 @@ def export_targets(
         return _ok(c.get("/api/v1/reports/targets/export", params=params))
 
 
+# --- OSINT / Discovery / Intelligence (Wave 5, read-only) ---
+
+
+@mcp.tool()
+def list_discovery_sessions(status: str | None = None, page: int = 1, limit: int = 20) -> dict:
+    """List asset-discovery (hunting) sessions for this key's tenant, newest
+    first. Optionally filter by status (pending/running/paused/completed/
+    failed/stopped). Returns {items, total, page, limit}."""
+    params: dict = {"page": page, "limit": limit}
+    if status:
+        params["status"] = status
+    with client() as c:
+        return _ok(c.get("/api/v1/discovery/sessions", params=params))
+
+
+@mcp.tool()
+def get_discovery_session(session_id: int) -> dict:
+    """Full detail and live stats for one discovery session. 404 if it doesn't
+    exist or belongs to another tenant."""
+    with client() as c:
+        return _ok(c.get(f"/api/v1/discovery/sessions/{session_id}"))
+
+
+@mcp.tool()
+def list_discovery_candidates(
+    session_id: int, status: str | None = None, page: int = 1, limit: int = 50
+) -> dict:
+    """Discovered domain candidates for one session, relevance-ranked. Optional
+    status filter (pending/accepted/rejected/duplicate). Returns
+    {items, total, page, limit}."""
+    params: dict = {"page": page, "limit": limit}
+    if status:
+        params["status"] = status
+    with client() as c:
+        return _ok(c.get(f"/api/v1/discovery/sessions/{session_id}/candidates", params=params))
+
+
+@mcp.tool()
+def list_brand_watches() -> dict:
+    """List the tenant's recurring brand-keyword shadow-domain watches, each
+    with its current shadow-candidate count. Returns {items, total}."""
+    with client() as c:
+        return _ok(c.get("/api/v1/brand-watches"))
+
+
+@mcp.tool()
+def list_shadow_domains(
+    status: str | None = None, brand_watch_id: int | None = None,
+    page: int = 1, limit: int = 50,
+) -> dict:
+    """List shadow-domain candidates found by brand watches (the DORA
+    brand-abuse hunt output) for this tenant, newest first. Filter by status
+    (new/confirmed/dismissed) and/or brand_watch_id. Returns
+    {items, total, page, limit}."""
+    params: dict = {"page": page, "limit": limit}
+    if status:
+        params["status"] = status
+    if brand_watch_id is not None:
+        params["brand_watch_id"] = brand_watch_id
+    with client() as c:
+        return _ok(c.get("/api/v1/shadow-domains", params=params))
+
+
 def main() -> None:
     mcp.run()
 

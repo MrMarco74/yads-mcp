@@ -5,6 +5,19 @@ All notable changes to `yads-mcp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added — Wave 5: OSINT / Discovery / Intelligence
+
+5 read-only tools over a new tenant-scoped `/api/v1/discovery*`,
+`/api/v1/brand-watches` and `/api/v1/shadow-domains` surface in YADS.
+
+**OSINT / Discovery / Intelligence** (5 tools)
+- `list_discovery_sessions(status, page, limit)`
+- `get_discovery_session(session_id)`
+- `list_discovery_candidates(session_id, status, page, limit)`
+- `list_brand_watches()` — brand watches with shadow-candidate counts
+- `list_shadow_domains(status, brand_watch_id, page, limit)` — DORA brand-abuse hunt output
+
+
 ### Added — Wave 4: Reports & Export
 
 3 read-only tools over a new tenant-scoped `/api/v1/reports*` surface in YADS,
