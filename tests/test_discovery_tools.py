@@ -21,13 +21,13 @@ def seeded_discovery():
         ).first()
         if not sess:
             sess = DiscoverySession(tenant_id=tenant.id, name="mcp-wave5-session",
-                                    seed_domains=["musterbank.de"], status="completed")
+                                    seed_domains=["examplecorp.de"], status="completed")
             session.add(sess); session.commit(); session.refresh(sess)
 
         session.exec(delete(DiscoveryCandidate).where(DiscoveryCandidate.session_id == sess.id))
         session.commit()
-        for dom, score, status in [("mcp-shadow1.musterbank.uk", 0.9, "pending"),
-                                   ("mcp-shadow2.musterbank.uk", 0.4, "accepted")]:
+        for dom, score, status in [("mcp-shadow1.examplecorp.uk", 0.9, "pending"),
+                                   ("mcp-shadow2.examplecorp.uk", 0.4, "accepted")]:
             session.add(DiscoveryCandidate(session_id=sess.id, domain=dom,
                         source_scanner="dns_scanner", relevance_score=score, status=status))
 
@@ -69,7 +69,7 @@ def test_get_discovery_session_tool_not_found(seeded_discovery):
 def test_list_discovery_candidates_tool(seeded_discovery):
     from yads_mcp.server import list_discovery_candidates
     domains = {c["domain"] for c in list_discovery_candidates(seeded_discovery["session_id"])["items"]}
-    assert {"mcp-shadow1.musterbank.uk", "mcp-shadow2.musterbank.uk"} <= domains
+    assert {"mcp-shadow1.examplecorp.uk", "mcp-shadow2.examplecorp.uk"} <= domains
 
 
 def test_list_brand_watches_tool(seeded_discovery):
