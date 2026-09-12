@@ -34,7 +34,9 @@ def _ok(resp: httpx.Response):
 def queue_status() -> dict:
     """Current queue state for this API key's tenant: whether the queue is
     active (paused/resumed), queued/running target counts, and the tenant's
-    active/reserved Celery tasks."""
+    active/reserved Celery tasks. Also reports broker_depth/broker_pending --
+    the messages actually waiting in the broker, which is the authoritative
+    pending count but is fleet-wide, not scoped to this key's tenant."""
     with client() as c:
         return _ok(c.get("/api/v1/queue/status"))
 
@@ -55,7 +57,9 @@ def queue_list_rate_limited_modules() -> dict:
 
 @mcp.tool()
 def queue_pause() -> dict:
-    """Pause the scan queue -- stops workers from picking up new tasks.
+    """Pause the scan queue -- stops workers from picking up new tasks and
+    discards the backlog already published to the broker (reported as
+    broker_purged_count), so a later resume does not drain stale tasks.
     NOTE: this is fleet-wide, not scoped to this key's tenant (matches
     YADS's existing dashboard pause behavior)."""
     with client() as c:
@@ -84,7 +88,9 @@ def queue_purge(confirm: bool) -> dict:
     """Clear every queued/running scan for this key's tenant -- irreversible
     beyond a 60-second undo window (see queue_undo_purge). Requires the
     'destructive' scope on this API key. Set confirm=True to actually
-    perform this."""
+    perform this. Clears this tenant's pending tasks from the broker itself
+    (other tenants' messages are requeued untouched), so the backlog does not
+    reappear on the next resume."""
     with client() as c:
         return _ok(c.post("/api/v1/queue/purge", json={"confirm": confirm}))
 
